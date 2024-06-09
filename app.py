@@ -14,7 +14,6 @@ st.title("Beast Search")
 # Constants for avatars
 USER_AVATAR = "👤"
 BOT_AVATAR = "🤖"
-YOUTUBE_API_KEY = 'AIzaSyB_sVWC9i7cQeRqyo4v6I-wSZ8lw-bUULg'
 
 # Initialize Trufflepig client
 client = Trufflepig(os.getenv('TRUFFLE_PIG_KEY'))
