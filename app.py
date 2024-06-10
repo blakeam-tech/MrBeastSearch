@@ -1,8 +1,10 @@
-import streamlit as st
+"""Module for searching and managing chat history related to MrBeast's YouTube videos using Streamlit."""
+
 import os
 import shelve
-from trufflepig import Trufflepig
+import streamlit as st
 from dotenv import load_dotenv
+from trufflepig import Trufflepig
 from utils import get_youtube_video_title, find_matching_dialogue
 
 # Load environment variables
@@ -16,25 +18,26 @@ USER_AVATAR = "👤"
 BOT_AVATAR = "🤖"
 
 # Initialize Trufflepig client
-client = Trufflepig(os.getenv('TRUFFLE_PIG_KEY'))
-index = client.get_index('MrBeastYouTube')
+TRUFFLE_PIG_KEY = os.getenv("TRUFFLE_PIG_KEY")
+client = Trufflepig(TRUFFLE_PIG_KEY)
+index = client.get_index("MrBeastYouTube")
 
-# Load chat history from shelve file
 def load_chat_history():
-    with shelve.open("chat_history") as db:
-        return db.get("messages", [])
+    """Load chat history from a shelve file."""
+    with shelve.open("chat_history") as chat_db:
+        return chat_db.get("messages", [])
 
-# Save chat history to shelve file
 def save_chat_history(messages):
-    with shelve.open("chat_history") as db:
-        db["messages"] = messages
+    """Save chat history to a shelve file."""
+    with shelve.open("chat_history") as chat_db:
+        chat_db["messages"] = messages
 
-# Function to reset video search
 def reset_video_search():
-    if 'video_id' in st.session_state:
-        del st.session_state['video_id']
-    if 'transcript' in st.session_state:
-        del st.session_state['transcript']
+    """Reset the state variables related to video search."""
+    if "video_id" in st.session_state:
+        del st.session_state["video_id"]
+    if "transcript" in st.session_state:
+        del st.session_state["transcript"]
 
 # Initialize or load chat history
 if "messages" not in st.session_state:
@@ -46,7 +49,6 @@ with st.sidebar:
         st.session_state.messages = []
         save_chat_history([])
 
-    # Button to initiate new video search, now correctly placed with defined function above
     if st.button("New Video Search"):
         reset_video_search()
 
@@ -57,40 +59,43 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Main chat interface
-if 'video_id' not in st.session_state:
+if "video_id" not in st.session_state:
     if prompt := st.chat_input("Enter your video query:", key="video_query"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_AVATAR):
             st.markdown(prompt)
 
-        # Search for video
         with st.chat_message("assistant", avatar=BOT_AVATAR):
             message_placeholder = st.empty()
             response = index.search(query_text=prompt)
-            if response and response[0].metadata.get('video_id'):
-                video_id = response[0].metadata['video_id']
-                transcript = response[0].metadata.get('transcript', '')  # Get transcript if available
+            if response and response[0].metadata.get("video_id"):
+                video_id = response[0].metadata["video_id"]
+                transcript = response[0].metadata.get("transcript", "")
+                YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")  # Define the API key
                 video_title = get_youtube_video_title(video_id, YOUTUBE_API_KEY)
-                full_response = f"Found video: {video_title}"
-                st.session_state['video_id'] = video_id  # Store video ID in session
-                st.session_state['transcript'] = transcript  # Store transcript in session
+                FULL_RESPONSE = f"Found video: {video_title}"
+                st.session_state["video_id"] = video_id
+                st.session_state["transcript"] = transcript
             else:
-                full_response = "No relevant video found."
-            
-            message_placeholder.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+                FULL_RESPONSE = "No relevant video found."
+
+            message_placeholder.markdown(FULL_RESPONSE)
+            st.session_state.messages.append(
+                {"role": "assistant", "content": FULL_RESPONSE}
+            )
 
 # Dialogue extraction interface
-if 'video_id' in st.session_state:
-    if dialogue := st.chat_input("Enter the specific dialogue you're looking for:", key="dialogue_search"):
+if "video_id" in st.session_state:
+    if dialogue := st.chat_input(
+        "Enter the specific dialogue you're looking for:", key="dialogue_search"
+    ):
         st.session_state.messages.append({"role": "user", "content": dialogue})
         with st.chat_message("user", avatar=USER_AVATAR):
             st.markdown(dialogue)
 
-        # Find matching dialogue
         with st.chat_message("assistant", avatar=BOT_AVATAR):
-            transcript = st.session_state.get('transcript', '[]')
-            result = find_matching_dialogue(transcript, st.session_state['video_id'], dialogue)
+            transcript = st.session_state.get("transcript", "[]")
+            result = find_matching_dialogue(transcript, st.session_state["video_id"], dialogue)
             st.write(result)
             st.session_state.messages.append({"role": "assistant", "content": result})
 
