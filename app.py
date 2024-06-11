@@ -74,10 +74,17 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
 
-# Main chat interface for video search
+# Main chat interface
 if st.session_state.video_id is None:
-    if prompt := st.text_input("Enter your video query:", key="video_query", value=st.session_state.get('video_query', '')):
+    # Text input for video query with a key, without setting a default value through session state
+    prompt = st.text_input("Enter your video query:", key="video_query")
+    if prompt:
+        # Append the user input to messages and display it
         st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user", avatar=USER_AVATAR):
+            st.markdown(prompt)
+
+        # Searching for the video using the provided query
         with st.chat_message("assistant", avatar=BOT_AVATAR):
             message_placeholder = st.empty()
             response = index.search(query_text=prompt)
@@ -91,18 +98,27 @@ if st.session_state.video_id is None:
                 st.session_state.transcript = transcript
             else:
                 FULL_RESPONSE = "No relevant video found."
+            
             message_placeholder.markdown(FULL_RESPONSE)
             st.session_state.messages.append({"role": "assistant", "content": FULL_RESPONSE})
 
 # Dialogue extraction interface
 if st.session_state.video_id:
-    if dialogue := st.text_input("Enter the specific dialogue you're looking for:", key="dialogue_search", value=st.session_state.get('dialogue_search', '')):
+    # Text input for dialogue search with a key, without setting a default value through session state
+    dialogue = st.text_input("Enter the specific dialogue you're looking for:", key="dialogue_search")
+    if dialogue:
+        # Append the user input to messages and display it
         st.session_state.messages.append({"role": "user", "content": dialogue})
+        with st.chat_message("user", avatar=USER_AVATAR):
+            st.markdown(dialogue)
+
+        # Process to find matching dialogue in the transcript
         with st.chat_message("assistant", avatar=BOT_AVATAR):
             transcript = st.session_state.get("transcript", "[]")
             result = find_matching_dialogue(transcript, st.session_state.video_id, dialogue)
             st.write(result)
             st.session_state.messages.append({"role": "assistant", "content": result})
+
 
 # Save chat history after each interaction
 save_chat_history(st.session_state.messages)
