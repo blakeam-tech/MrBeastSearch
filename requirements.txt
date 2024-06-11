@@ -1,5 +1,5 @@
 streamlit
 python-dotenv
 openai
-trufflepig
+trufflepig-py
 scikit-learn
