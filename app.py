@@ -9,7 +9,7 @@ from utils.helper_functions import get_youtube_video_title, find_matching_dialog
 load_dotenv()
 
 # Streamlit title
-st.title("Beast Search")
+st.title("Beast Search: Find your favorite MrBeast moments")
 
 # Constants for avatars
 USER_AVATAR = "👤"
@@ -53,8 +53,8 @@ preset_searches = {
 }
 
 with st.sidebar:
-    selected_video = st.selectbox("Select a video", list(preset_searches.keys()))
-    input_dialogue = st.text_input("Dialogue", value=preset_searches[selected_video])
+    selected_video = st.selectbox("Select a preset video", list(preset_searches.keys()))
+    input_dialogue = st.text_input("Select a preset dialogue", value=preset_searches[selected_video])
 
     if st.button("Load Preset Searches"):
         st.session_state.video_query = selected_video
