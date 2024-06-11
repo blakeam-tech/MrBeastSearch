@@ -42,25 +42,28 @@ def find_matching_dialogue(transcript_list, video_id, key_phrase, window_size=3)
         str: Description of the best matching dialogue segment and a URL to the timestamp in the video.
     """
     # Convert string representation of list into actual list
-    transcript_list = ast.literal_eval(transcript_list)
-    texts = [entry["text"] for entry in transcript_list]
-    segments = []
+    try:
+        transcript_list = ast.literal_eval(transcript_list)
+        texts = [entry["text"] for entry in transcript_list]
+        segments = []
 
-    # Create segments
-    for i in range(len(texts) - window_size + 1):
-        segment_text = " ".join(texts[i:i + window_size])
-        start_time = transcript_list[i]["start"]
-        end_time = transcript_list[i + window_size - 1]["start"] + transcript_list[i + window_size - 1]["duration"]
-        segments.append((segment_text, start_time, end_time))
+        # Create segments
+        for i in range(len(texts) - window_size + 1):
+            segment_text = " ".join(texts[i:i + window_size])
+            start_time = transcript_list[i]["start"]
+            end_time = transcript_list[i + window_size - 1]["start"] + transcript_list[i + window_size - 1]["duration"]
+            segments.append((segment_text, start_time, end_time))
 
-    # Vectorization and similarity calculation
-    segment_texts = [segment[0] for segment in segments] + [key_phrase]
-    vectorizer = TfidfVectorizer().fit(segment_texts)
-    vectors = vectorizer.transform(segment_texts)
-    similarities = cosine_similarity(vectors[-1], vectors[:-1]).flatten()
-    most_similar_index = similarities.argmax()
-    best_match = segments[most_similar_index]
+        # Vectorization and similarity calculation
+        segment_texts = [segment[0] for segment in segments] + [key_phrase]
+        vectorizer = TfidfVectorizer().fit(segment_texts)
+        vectors = vectorizer.transform(segment_texts)
+        similarities = cosine_similarity(vectors[-1], vectors[:-1]).flatten()
+        most_similar_index = similarities.argmax()
+        best_match = segments[most_similar_index]
 
-    # Create URL for the video at the specific time
-    url = f"https://www.youtube.com/watch?v={video_id}&t={int(best_match[1])}s"
-    return f'We found "{best_match[0]}" at {url}'
+        # Create URL for the video at the specific time
+        url = f"https://www.youtube.com/watch?v={video_id}&t={int(best_match[1])}s"
+        return f'We found "{best_match[0]}" at {url}'
+    except Exception as e:
+        return "We could not locate that clip."
