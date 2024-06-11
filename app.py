@@ -53,6 +53,7 @@ preset_searches = {
 }
 
 with st.sidebar:
+    st.title('Choose a search preset or write your own.')
     selected_video = st.selectbox("Select a preset video", list(preset_searches.keys()))
     input_dialogue = st.text_input("Select a preset dialogue", value=preset_searches[selected_video])
 
