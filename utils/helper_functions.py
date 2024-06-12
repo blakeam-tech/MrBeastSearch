@@ -24,7 +24,11 @@ def get_youtube_video_title(video_id, api_key):
 
     if response.status_code == 200:
         data = response.json()
-        return data["items"][0]["snippet"]["title"] if "items" in data and data["items"] else "Video not found"
+        return (
+            data["items"][0]["snippet"]["title"]
+            if "items" in data and data["items"]
+            else "Video not found"
+        )
     return f"Failed to fetch data: {response.status_code}"
 
 
@@ -49,9 +53,12 @@ def find_matching_dialogue(transcript_list, video_id, key_phrase, window_size=3)
 
         # Create segments
         for i in range(len(texts) - window_size + 1):
-            segment_text = " ".join(texts[i:i + window_size])
+            segment_text = " ".join(texts[i : i + window_size])
             start_time = transcript_list[i]["start"]
-            end_time = transcript_list[i + window_size - 1]["start"] + transcript_list[i + window_size - 1]["duration"]
+            end_time = (
+                transcript_list[i + window_size - 1]["start"]
+                + transcript_list[i + window_size - 1]["duration"]
+            )
             segments.append((segment_text, start_time, end_time))
 
         # Vectorization and similarity calculation

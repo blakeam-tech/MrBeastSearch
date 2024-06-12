@@ -20,42 +20,48 @@ TRUFFLE_PIG_KEY = os.getenv("TRUFFLE_PIG_KEY")
 client = Trufflepig(TRUFFLE_PIG_KEY)
 index = client.get_index("MrBeastYouTube")
 
+
 def load_chat_history():
     """Load chat history from a shelve file."""
     with shelve.open("chat_history") as chat_db:
         return chat_db.get("messages", [])
+
 
 def save_chat_history(messages):
     """Save chat history to a shelve file."""
     with shelve.open("chat_history") as chat_db:
         chat_db["messages"] = messages
 
+
 def reset_video_search():
     """Reset the state variables related to video search."""
     st.session_state.video_id = None
     st.session_state.transcript = None
 
+
 # Ensure initialization of session state variables
-if 'messages' not in st.session_state:
+if "messages" not in st.session_state:
     st.session_state.messages = load_chat_history()
 
-if 'video_id' not in st.session_state:
+if "video_id" not in st.session_state:
     st.session_state.video_id = None
 
-if 'transcript' not in st.session_state:
+if "transcript" not in st.session_state:
     st.session_state.transcript = None
 
 # Sidebar with preset search buttons and other controls
 preset_searches = {
     "Train Vs Giant Pit": "Drive a train into a pit.",
     "Tank Vs 500000": "Flaming Death Balls",
-    "No Food for 30 Days": "Gordon Ramsay"
+    "No Food for 30 Days": "Gordon Ramsay",
 }
 
 with st.sidebar:
-    st.title('Choose a search preset or write your own.')
+    st.title("Choose a search preset or write your own.")
     selected_video = st.selectbox("Select a preset video", list(preset_searches.keys()))
-    input_dialogue = st.text_input("Select a preset dialogue", value=preset_searches[selected_video])
+    input_dialogue = st.text_input(
+        "Select a preset dialogue", value=preset_searches[selected_video]
+    )
 
     if st.button("Load Preset Searches"):
         st.session_state.video_query = selected_video
@@ -99,14 +105,18 @@ if st.session_state.video_id is None:
                 st.session_state.transcript = transcript
             else:
                 FULL_RESPONSE = "No relevant video found."
-            
+
             message_placeholder.markdown(FULL_RESPONSE)
-            st.session_state.messages.append({"role": "assistant", "content": FULL_RESPONSE})
+            st.session_state.messages.append(
+                {"role": "assistant", "content": FULL_RESPONSE}
+            )
 
 # Dialogue extraction interface
 if st.session_state.video_id:
     # Text input for dialogue search with a key, without setting a default value through session state
-    dialogue = st.text_input("Enter the specific dialogue you're looking for:", key="dialogue_search")
+    dialogue = st.text_input(
+        "Enter the specific dialogue you're looking for:", key="dialogue_search"
+    )
     if dialogue:
         # Append the user input to messages and display it
         st.session_state.messages.append({"role": "user", "content": dialogue})
@@ -116,7 +126,9 @@ if st.session_state.video_id:
         # Process to find matching dialogue in the transcript
         with st.chat_message("assistant", avatar=BOT_AVATAR):
             transcript = st.session_state.get("transcript", "[]")
-            result = find_matching_dialogue(transcript, st.session_state.video_id, dialogue)
+            result = find_matching_dialogue(
+                transcript, st.session_state.video_id, dialogue
+            )
             st.write(result)
             st.session_state.messages.append({"role": "assistant", "content": result})
 
